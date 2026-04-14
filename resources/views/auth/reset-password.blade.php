@@ -1,39 +1,55 @@
-<x-guest-layout>
-    <form method="POST" action="{{ route('password.store') }}">
-        @csrf
+{{-- FILE: resources/views/auth/reset-password.blade.php --}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Password — Votera</title>
+    <link rel="stylesheet" href="{{ asset('css/votera.css') }}">
+</head>
+<body>
+<div class="v-login-bg">
+    <div class="v-login-card">
 
-        <!-- Password Reset Token -->
-        <input type="hidden" name="token" value="{{ $request->route('token') }}">
-
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email', $request->email)" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+        <div class="v-login-brand">
+            <div class="v-login-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+            </div>
+            <div class="v-login-title">VOTERA</div>
+            <div class="v-login-year">Set New Password</div>
         </div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-            <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
+        <form method="POST" action="{{ route('password.store') }}">
+            @csrf
+            <input type="hidden" name="token" value="{{ $request->route('token') }}">
 
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
+            <div class="v-form-group">
+                <label class="v-label" for="email">Email Address</label>
+                <input id="email" class="v-input {{ $errors->has('email') ? 'error' : '' }}"
+                       type="email" name="email" value="{{ old('email', $request->email) }}" required>
+                @error('email') <p class="v-input-error">{{ $message }}</p> @enderror
+            </div>
 
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                                type="password"
-                                name="password_confirmation" required autocomplete="new-password" />
+            <div class="v-form-group">
+                <label class="v-label" for="password">New Password</label>
+                <input id="password" class="v-input {{ $errors->has('password') ? 'error' : '' }}"
+                       type="password" name="password" required autocomplete="new-password">
+                @error('password') <p class="v-input-error">{{ $message }}</p> @enderror
+            </div>
 
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-        </div>
+            <div class="v-form-group">
+                <label class="v-label" for="password_confirmation">Confirm Password</label>
+                <input id="password_confirmation" class="v-input"
+                       type="password" name="password_confirmation" required>
+            </div>
 
-        <div class="flex items-center justify-end mt-4">
-            <x-primary-button>
-                {{ __('Reset Password') }}
-            </x-primary-button>
-        </div>
-    </form>
-</x-guest-layout>
+            <button type="submit" class="btn btn-primary btn-block btn-lg">
+                Reset Password
+            </button>
+        </form>
+    </div>
+</div>
+</body>
+</html>
