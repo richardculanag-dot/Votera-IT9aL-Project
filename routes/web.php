@@ -1,13 +1,12 @@
 <?php
+// FILE: routes/web.php — replace existing
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin;
 use App\Http\Controllers\Staff;
 use App\Http\Controllers\Student;
 
-// ─────────────────────────────────────────
-// Guest / Root
-// ─────────────────────────────────────────
+// ── Root redirect ────────────────────────────────────────────
 Route::get('/', function () {
     if (auth()->check()) {
         return redirect()->route(match (auth()->user()->role) {
@@ -19,14 +18,9 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
-// ─────────────────────────────────────────
-// Auth routes (Breeze)
-// ─────────────────────────────────────────
 require __DIR__ . '/auth.php';
 
-// ─────────────────────────────────────────
-// Redirect after login based on role
-// ─────────────────────────────────────────
+// Post-login role redirect
 Route::middleware('auth')->get('/dashboard', function () {
     return redirect()->route(match (auth()->user()->role) {
         'admin'  => 'admin.dashboard',
@@ -35,16 +29,18 @@ Route::middleware('auth')->get('/dashboard', function () {
     });
 })->name('dashboard');
 
-// ─────────────────────────────────────────
-// Admin Routes
-// ─────────────────────────────────────────
+// ── Admin ────────────────────────────────────────────────────
 Route::middleware(['auth', 'role:admin'])
      ->prefix('admin')
      ->name('admin.')
      ->group(function () {
 
-    Route::get('/dashboard', [Admin\DashboardController::class, 'index'])
-         ->name('dashboard');
+    Route::get('/dashboard', [Admin\DashboardController::class, 'index'])->name('dashboard');
+
+    // Elections
+    Route::resource('elections', Admin\ElectionController::class);
+    Route::post('/elections/{election}/toggle', [Admin\ElectionController::class, 'toggleStatus'])
+         ->name('elections.toggle');
 
     // Positions
     Route::resource('positions', Admin\PositionController::class);
@@ -52,53 +48,38 @@ Route::middleware(['auth', 'role:admin'])
     // Candidates
     Route::resource('candidates', Admin\CandidateController::class);
 
-    // Voting Control
-    Route::get('/voting-control', [Admin\VotingControlController::class, 'index'])
-         ->name('voting-control.index');
-    Route::post('/voting-control/toggle', [Admin\VotingControlController::class, 'toggle'])
-         ->name('voting-control.toggle');
-
     // Results
-    Route::get('/results', [Admin\ResultsController::class, 'index'])
-         ->name('results');
+    Route::get('/results', [Admin\ResultsController::class, 'index'])->name('results');
+
+    // Audit Log
+    Route::get('/audit', [Admin\AuditLogController::class, 'index'])->name('audit');
 });
 
-// ─────────────────────────────────────────
-// Staff Routes
-// ─────────────────────────────────────────
+// ── Staff ────────────────────────────────────────────────────
 Route::middleware(['auth', 'role:staff'])
      ->prefix('staff')
      ->name('staff.')
      ->group(function () {
 
-    Route::get('/dashboard', [Staff\DashboardController::class, 'index'])
-         ->name('dashboard');
+    Route::get('/dashboard', [Staff\DashboardController::class, 'index'])->name('dashboard');
 
-    // Staff can manage candidates (view/create/edit only – no delete enforced in controller)
-    Route::resource('candidates', Admin\CandidateController::class)
-         ->except(['destroy']);
+    // Read-only positions
+    Route::get('/positions', [Admin\PositionController::class, 'index'])->name('positions.index');
 
-    // Staff can view positions (read-only)
-    Route::get('/positions', [Admin\PositionController::class, 'index'])
-         ->name('positions.index');
+    // Candidates — no delete
+    Route::resource('candidates', Admin\CandidateController::class)->except(['destroy']);
 
-    // Staff can view results
-    Route::get('/results', [Admin\ResultsController::class, 'index'])
-         ->name('results');
+    // Results
+    Route::get('/results', [Admin\ResultsController::class, 'index'])->name('results');
 });
 
-// ─────────────────────────────────────────
-// Student Routes
-// ─────────────────────────────────────────
+// ── Student ──────────────────────────────────────────────────
 Route::middleware(['auth', 'role:student'])
      ->prefix('vote')
      ->name('student.')
      ->group(function () {
 
-    Route::get('/',        [Student\VoteController::class, 'index'])
-         ->name('vote');
-    Route::post('/',       [Student\VoteController::class, 'store'])
-         ->name('vote.store');
-    Route::get('/success', [Student\VoteController::class, 'success'])
-         ->name('vote.success');
+    Route::get('/',        [Student\VoteController::class, 'index'])->name('vote');
+    Route::post('/',       [Student\VoteController::class, 'store'])->name('vote.store');
+    Route::get('/success', [Student\VoteController::class, 'success'])->name('vote.success');
 });

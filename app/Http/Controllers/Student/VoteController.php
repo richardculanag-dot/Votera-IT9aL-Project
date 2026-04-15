@@ -1,10 +1,13 @@
 <?php
+// FILE: app/Http/Controllers/Student/VoteController.php — replace existing
 
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Models\Election;
 use App\Models\Position;
 use App\Models\Vote;
+use App\Models\AuditLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -12,46 +15,52 @@ class VoteController extends Controller
 {
     public function index()
     {
-        // Check if voting is open
-        $votingStatus = DB::table('voting_settings')
-                          ->where('key', 'voting_status')
-                          ->value('value');
+        $election = Election::ongoing()->latest()->first();
 
-        if ($votingStatus !== 'open') {
+        if (! $election) {
             return view('student.voting-closed');
         }
 
-        // Check if student already voted (all positions)
-        $positions     = Position::with('candidates')->orderBy('order')->get();
-        $votedPosition = Vote::where('user_id', auth()->id())
-                             ->pluck('position_id')
-                             ->toArray();
+        $positions     = Position::where('election_id', $election->id)
+                                 ->with('candidates')
+                                 ->orderBy('order')
+                                 ->get();
 
-        // If they've voted in every position, redirect to success
-        if (count($votedPosition) >= $positions->count() && $positions->count() > 0) {
+        // Fallback: if positions have no election_id yet, load all
+        if ($positions->isEmpty()) {
+            $positions = Position::with('candidates')->orderBy('order')->get();
+        }
+
+        $votedPositionIds = Vote::where('user_id', auth()->id())
+                               ->where('election_id', $election->id)
+                               ->pluck('position_id')
+                               ->toArray();
+
+        if ($positions->count() > 0 && count($votedPositionIds) >= $positions->count()) {
             return redirect()->route('student.vote.success');
         }
 
-        return view('student.vote', compact('positions', 'votedPosition'));
+        return view('student.vote', compact('positions', 'votedPositionIds', 'election'));
     }
 
     public function store(Request $request)
     {
-        // Ensure voting is open
-        $votingStatus = DB::table('voting_settings')
-                          ->where('key', 'voting_status')
-                          ->value('value');
+        $election = Election::ongoing()->latest()->first();
 
-        if ($votingStatus !== 'open') {
+        if (! $election) {
             return back()->with('error', 'Voting is currently closed.');
         }
 
-        $positions = Position::all();
+        $positions = Position::where('election_id', $election->id)->get();
+        if ($positions->isEmpty()) {
+            $positions = Position::all();
+        }
 
         $request->validate(
             collect($positions)->mapWithKeys(fn ($p) => [
                 "votes.{$p->id}" => 'required|exists:candidates,id',
-            ])->toArray()
+            ])->toArray(),
+            [],
         );
 
         DB::beginTransaction();
@@ -59,20 +68,27 @@ class VoteController extends Controller
             foreach ($positions as $position) {
                 $candidateId = $request->input("votes.{$position->id}");
 
-                // Skip if already voted for this position
                 $alreadyVoted = Vote::where('user_id', auth()->id())
                                     ->where('position_id', $position->id)
+                                    ->where('election_id', $election->id)
                                     ->exists();
-                if ($alreadyVoted) {
-                    continue;
-                }
+                if ($alreadyVoted) continue;
 
                 Vote::create([
                     'user_id'      => auth()->id(),
                     'candidate_id' => $candidateId,
                     'position_id'  => $position->id,
+                    'election_id'  => $election->id,
                 ]);
             }
+
+            AuditLog::record(
+                'vote_cast',
+                auth()->user()->name . ' submitted ballot for: ' . $election->title,
+                'Vote',
+                $election->id
+            );
+
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();

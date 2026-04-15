@@ -1,119 +1,198 @@
+{{-- FILE: resources/views/admin/dashboard.blade.php — replace existing --}}
 @extends('layouts.app')
 
 @section('title', 'Dashboard')
-
-@section('breadcrumb')
-    Admin / <span>Dashboard</span>
-@endsection
+@section('breadcrumb') Admin / <span>Dashboard</span> @endsection
 
 @section('content')
 
 <div class="v-page-header">
     <div>
         <div class="v-page-header__title">Dashboard</div>
-        <div class="v-page-header__sub">Overview of the 2025 General Election</div>
+        <div class="v-page-header__sub">
+            {{ $currentElection ? $currentElection->title : 'No active election' }}
+        </div>
     </div>
     <div class="v-page-header__actions">
-        <span class="badge {{ $votingStatus === 'open' ? 'badge-open' : 'badge-closed' }}">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 8 8" style="width:7px;height:7px;"><circle cx="4" cy="4" r="4"/></svg>
-            Voting {{ ucfirst($votingStatus) }}
-        </span>
+        @if($currentElection)
+            <span class="badge badge-{{ $currentElection->status === 'ongoing' ? 'open' : 'closed' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 8 8" style="width:7px;height:7px;"><circle cx="4" cy="4" r="4"/></svg>
+                {{ ucfirst($currentElection->status) }}
+            </span>
+        @endif
+        <a href="{{ route('admin.elections.index') }}" class="btn btn-secondary btn-sm">Manage Elections</a>
+        <a href="{{ route('admin.elections.create') }}" class="btn btn-primary btn-sm">+ New Election</a>
     </div>
 </div>
 
-{{-- Stats --}}
+{{-- ── Stat Cards ──────────────────────────────────────── --}}
 <div class="v-stats">
     <div class="v-stat-card">
         <div class="v-stat-card__icon">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         </div>
-        <div class="v-stat-card__label">Total Students</div>
+        <div class="v-stat-card__label">Total Voters</div>
         <div class="v-stat-card__value">{{ $totalStudents }}</div>
-        <div class="v-stat-card__sub">Registered voters</div>
+        <div class="v-stat-card__sub">Registered students</div>
     </div>
     <div class="v-stat-card">
         <div class="v-stat-card__icon">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-        </div>
-        <div class="v-stat-card__label">Candidates</div>
-        <div class="v-stat-card__value">{{ $totalCandidates }}</div>
-        <div class="v-stat-card__sub">Running this election</div>
-    </div>
-    <div class="v-stat-card">
-        <div class="v-stat-card__icon">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
         </div>
         <div class="v-stat-card__label">Votes Cast</div>
-        <div class="v-stat-card__value">{{ $totalVotes }}</div>
-        <div class="v-stat-card__sub">
-            @if($totalStudents > 0)
-                {{ $totalStudents > 0 ? round(($totalVotes / $totalStudents) * 100) : 0 }}% participation
+        <div class="v-stat-card__value">{{ $totalVotesCast }}</div>
+        <div class="v-stat-card__sub">Current election</div>
+    </div>
+    <div class="v-stat-card">
+        <div class="v-stat-card__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        </div>
+        <div class="v-stat-card__label">Voter Turnout</div>
+        <div class="v-stat-card__value">{{ $turnoutPercent }}%</div>
+        <div class="v-stat-card__sub">Of registered voters</div>
+    </div>
+    <div class="v-stat-card">
+        <div class="v-stat-card__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        </div>
+        <div class="v-stat-card__label">Active Elections</div>
+        <div class="v-stat-card__value">{{ $activeElections }}</div>
+        <div class="v-stat-card__sub">Currently ongoing</div>
+    </div>
+</div>
+
+{{-- ── Charts + Quick Actions ──────────────────────────── --}}
+<div style="display:grid;grid-template-columns:1fr 340px;gap:20px;margin-bottom:20px;">
+
+    {{-- Votes by Position chart --}}
+    <div class="v-card">
+        <div class="v-card__header">
+            <span class="v-card__title">Votes by Position</span>
+            @if($currentElection)
+                <span style="font-size:0.75rem;color:var(--ash);">{{ $currentElection->title }}</span>
+            @endif
+        </div>
+        <div class="v-card__body">
+            @if(count($chartLabels) > 0)
+                <canvas id="votesChart" height="200"></canvas>
             @else
-                —
+                <div class="v-empty" style="padding:40px 0;">
+                    <p>No votes recorded yet.</p>
+                </div>
             @endif
         </div>
     </div>
-    <div class="v-stat-card">
-        <div class="v-stat-card__icon">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/></svg>
-        </div>
-        <div class="v-stat-card__label">Voting Status</div>
-        <div class="v-stat-card__value" style="font-size:1.4rem;">{{ ucfirst($votingStatus) }}</div>
-        <div class="v-stat-card__sub">
-            <a href="{{ route('admin.voting-control.index') }}" style="color:var(--ash);text-decoration:underline;font-size:0.76rem;">Manage →</a>
+
+    {{-- Quick Actions --}}
+    <div class="v-card">
+        <div class="v-card__header"><span class="v-card__title">Quick Actions</span></div>
+        <div class="v-card__body" style="display:flex;flex-direction:column;gap:9px;">
+            <a href="{{ route('admin.elections.create') }}" class="btn btn-primary btn-block">
+                + Create Election
+            </a>
+            <a href="{{ route('admin.candidates.create') }}" class="btn btn-secondary btn-block">
+                + Add Candidate
+            </a>
+            <a href="{{ route('admin.positions.create') }}" class="btn btn-secondary btn-block">
+                + Add Position
+            </a>
+            <a href="{{ route('admin.results') }}" class="btn btn-secondary btn-block">
+                View Results
+            </a>
+
+            @if($currentElection && !$currentElection->isEnded())
+            <div class="v-divider"></div>
+            <form method="POST" action="{{ route('admin.elections.toggle', $currentElection) }}">
+                @csrf
+                <button type="submit" class="btn btn-block {{ $currentElection->isOngoing() ? 'btn-danger' : 'btn-success' }}"
+                    onclick="return confirm('Change election status?')">
+                    {{ $currentElection->isOngoing() ? '🔒 End Voting' : '🔓 Start Voting' }}
+                </button>
+            </form>
+            @endif
         </div>
     </div>
 </div>
 
-{{-- Quick actions --}}
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+{{-- ── Turnout Progress + Audit Log ───────────────────── --}}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
     <div class="v-card">
-        <div class="v-card__header">
-            <span class="v-card__title">Quick Actions</span>
-        </div>
-        <div class="v-card__body" style="display:flex;flex-direction:column;gap:10px;">
-            <a href="{{ route('admin.candidates.create') }}" class="btn btn-secondary btn-block">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                Add New Candidate
-            </a>
-            <a href="{{ route('admin.positions.create') }}" class="btn btn-secondary btn-block">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                Add New Position
-            </a>
-            <a href="{{ route('admin.voting-control.index') }}" class="btn btn-secondary btn-block">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/></svg>
-                Manage Voting
-            </a>
-            <a href="{{ route('admin.results') }}" class="btn btn-secondary btn-block">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                View Results
-            </a>
+        <div class="v-card__header"><span class="v-card__title">Voter Turnout</span></div>
+        <div class="v-card__body">
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                <span style="font-size:0.85rem;font-weight:600;">{{ $totalVotesCast }} of {{ $totalStudents }} students voted</span>
+                <span style="font-size:0.85rem;font-weight:700;">{{ $turnoutPercent }}%</span>
+            </div>
+            <div style="height:12px;background:var(--surface);border-radius:99px;overflow:hidden;border:1px solid var(--border);">
+                <div style="height:100%;width:{{ $turnoutPercent }}%;background:var(--ink);border-radius:99px;transition:width 0.6s ease;"></div>
+            </div>
+            <p style="font-size:0.78rem;color:var(--ash);margin-top:8px;">
+                {{ $totalStudents - $totalVotesCast }} students have not voted yet.
+            </p>
         </div>
     </div>
 
     <div class="v-card">
         <div class="v-card__header">
-            <span class="v-card__title">Election Status</span>
+            <span class="v-card__title">Recent Activity</span>
+            <a href="{{ route('admin.audit') }}" style="font-size:0.75rem;color:var(--ash);">View all →</a>
         </div>
-        <div class="v-card__body" style="text-align:center;padding:32px 22px;">
-            <div style="font-size:3.5rem;font-weight:800;color:{{ $votingStatus === 'open' ? 'var(--success)' : 'var(--ash)' }};line-height:1;">
-                {{ strtoupper($votingStatus) }}
+        <div class="v-card__body" style="padding:0;">
+            @forelse($recentLogs as $log)
+            <div style="padding:10px 18px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start;">
+                <div style="width:7px;height:7px;border-radius:50%;background:var(--ink);margin-top:5px;flex-shrink:0;"></div>
+                <div>
+                    <div style="font-size:0.82rem;font-weight:600;">{{ $log->description }}</div>
+                    <div style="font-size:0.72rem;color:var(--ash);">
+                        {{ $log->user->name ?? 'System' }} · {{ $log->created_at->diffForHumans() }}
+                    </div>
+                </div>
             </div>
-            <p style="margin:10px 0 20px;font-size:0.85rem;">
-                @if($votingStatus === 'open')
-                    Students can currently cast their votes.
-                @else
-                    Voting is currently closed. Open it when ready.
-                @endif
-            </p>
-            <form method="POST" action="{{ route('admin.voting-control.toggle') }}">
-                @csrf
-                <button type="submit" class="btn {{ $votingStatus === 'open' ? 'btn-danger' : 'btn-success' }} btn-block">
-                    {{ $votingStatus === 'open' ? '🔒 Close Voting' : '🔓 Open Voting' }}
-                </button>
-            </form>
+            @empty
+            <div class="v-empty" style="padding:28px;"><p>No activity yet.</p></div>
+            @endforelse
         </div>
     </div>
 </div>
 
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+@if(count($chartLabels) > 0)
+const ctx = document.getElementById('votesChart').getContext('2d');
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: {!! json_encode($chartLabels) !!},
+        datasets: [{
+            label: 'Votes',
+            data: {!! json_encode($chartData) !!},
+            backgroundColor: '#1a1a1a',
+            borderRadius: 6,
+            borderSkipped: false,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => ` ${ctx.raw} votes` } }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { precision: 0, font: { family: 'DM Sans' } },
+                grid: { color: '#e2e0dc' }
+            },
+            x: {
+                ticks: { font: { family: 'DM Sans', size: 11 } },
+                grid: { display: false }
+            }
+        }
+    }
+});
+@endif
+</script>
+@endpush
