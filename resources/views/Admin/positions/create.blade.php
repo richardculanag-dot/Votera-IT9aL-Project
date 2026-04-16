@@ -3,7 +3,7 @@
 @section('title', 'Add Position')
 
 @section('breadcrumb')
-    Admin / <a href="{{ route('admin.positions.index') }}">Positions</a> / <span>Add</span>
+    {{ ucfirst($routePrefix) }} / <a href="{{ route($routePrefix . '.elections.index') }}">Elections</a> / <a href="{{ route($routePrefix . '.elections.positions.index', $election) }}">Positions</a> / <span>Add</span>
 @endsection
 
 @section('content')
@@ -11,14 +11,17 @@
 <div class="v-page-header">
     <div>
         <div class="v-page-header__title">Add Position</div>
-        <div class="v-page-header__sub">Create a new elective position</div>
+        <div class="v-page-header__sub">{{ $election->title }}</div>
     </div>
-    <a href="{{ route('admin.positions.index') }}" class="btn btn-secondary">← Back</a>
+    <a href="{{ route($routePrefix . '.elections.positions.index', $election) }}" class="btn btn-secondary">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        Back
+    </a>
 </div>
 
 <div class="v-card" style="max-width:540px;">
     <div class="v-card__body">
-        <form method="POST" action="{{ route('admin.positions.store') }}">
+        <form method="POST" action="{{ route($routePrefix . '.elections.positions.store', $election) }}">
             @csrf
 
             <div class="v-form-group">
@@ -43,7 +46,7 @@
 
             <div style="display:flex;gap:8px;">
                 <button type="submit" class="btn btn-primary">Save Position</button>
-                <a href="{{ route('admin.positions.index') }}" class="btn btn-secondary">Cancel</a>
+                <a href="{{ route($routePrefix . '.elections.positions.index', $election) }}" class="btn btn-secondary">Cancel</a>
             </div>
         </form>
     </div>

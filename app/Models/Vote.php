@@ -1,12 +1,15 @@
 <?php
-// FILE: app/Models/Vote.php — replace existing
+// FILE: app/Models/Vote.php 
 
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Vote extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'user_id', 'candidate_id', 'position_id', 'election_id',
     ];

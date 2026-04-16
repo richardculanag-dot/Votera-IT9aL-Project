@@ -1,19 +1,29 @@
 <?php
-// FILE: app/Http/Controllers/Admin/AuditLogController.php
 
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
+use Illuminate\Http\Request;
 
 class AuditLogController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $logs = AuditLog::with('user')
-                        ->latest()
-                        ->paginate(30);
+        $type = $request->get('type', 'management');
 
-        return view('admin.audit', compact('logs'));
+        if ($type === 'votes') {
+            $logs = AuditLog::with('user')
+                ->where('action', 'like', 'vote_%')
+                ->latest()
+                ->paginate(30);
+        } else {
+            $logs = AuditLog::with('user')
+                ->where('action', 'not like', 'vote_%')
+                ->latest()
+                ->paginate(30);
+        }
+
+        return view('admin.audit', compact('logs', 'type'));
     }
 }

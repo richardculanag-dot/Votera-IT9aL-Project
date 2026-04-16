@@ -90,12 +90,10 @@
             <a href="{{ route('admin.elections.create') }}" class="btn btn-primary btn-block">
                 + Create Election
             </a>
-            <a href="{{ route('admin.candidates.create') }}" class="btn btn-secondary btn-block">
-                + Add Candidate
-            </a>
-            <a href="{{ route('admin.positions.create') }}" class="btn btn-secondary btn-block">
-                + Add Position
-            </a>
+            @if($currentElection)
+                <a href="{{ route('admin.elections.show', $currentElection) }}" class="btn btn-secondary btn-block">Open Election Domain</a>
+                <a href="{{ route('admin.elections.positions.create', $currentElection) }}" class="btn btn-secondary btn-block">+ Add Position (Current Election)</a>
+            @endif
             <a href="{{ route('admin.results') }}" class="btn btn-secondary btn-block">
                 View Results
             </a>

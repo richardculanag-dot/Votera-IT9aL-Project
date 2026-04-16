@@ -58,12 +58,7 @@
             </div>
 
             <div class="v-form-group">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
-                    <label class="v-label" for="password" style="margin-bottom:0;">Password</label>
-                    @if(Route::has('password.request'))
-                        <a href="{{ route('password.request') }}" class="forgot-link">FORGOT?</a>
-                    @endif
-                </div>
+                <label class="v-label" for="password" style="margin-bottom:5px;">Password</label>
                 <div style="position:relative;">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#aaa;">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
@@ -79,11 +74,6 @@
                         required
                     >
                 </div>
-            </div>
-
-            <div class="v-check-row">
-                <input type="checkbox" id="remember" name="remember" {{ old('remember') ? 'checked' : '' }}>
-                <label for="remember">Remember this account</label>
             </div>
 
             <button type="submit" class="btn btn-primary btn-block btn-lg">

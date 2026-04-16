@@ -1,5 +1,5 @@
 <?php
-// FILE: app/Models/Election.php
+// FILE: app/Models/Election.php — replace existing
 
 namespace App\Models;
 
@@ -12,15 +12,24 @@ class Election extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'title', 'description', 'start_date', 'end_date', 'status', 'created_by',
+        'title', 'description',
+        'department_id',
+        'start_date', 'end_date',
+        'status',            // pending | ongoing | ended
+        'is_locked',
+        'lock_reason',
+        'locked_at',
+        'created_by',
     ];
 
     protected $casts = [
         'start_date' => 'date',
         'end_date'   => 'date',
+        'locked_at'  => 'datetime',
+        'is_locked'  => 'boolean',
     ];
 
-    // ── Relationships ──────────────────────────────────────
+    // ── Relationships ──────────────────────────────────
     public function positions()
     {
         return $this->hasMany(Position::class);
@@ -31,30 +40,42 @@ class Election extends Model
         return $this->hasMany(Vote::class);
     }
 
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
+    }
+
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    // ── Helpers ────────────────────────────────────────────
-    public function isOngoing(): bool
+    public function voterLogs()
     {
-        return $this->status === 'ongoing';
+        return $this->hasMany(VoterLog::class);
     }
 
-    public function isPending(): bool
+    public function eligibilities()
     {
-        return $this->status === 'pending';
+        return $this->hasMany(ElectionStudentEligibility::class);
     }
 
-    public function isEnded(): bool
+    // ── Status helpers ─────────────────────────────────
+    public function isOngoing(): bool { return $this->status === 'ongoing'; }
+    public function isPending(): bool { return $this->status === 'pending'; }
+    public function isEnded(): bool   { return $this->status === 'ended'; }
+
+    public function isOpenForVoting(): bool
     {
-        return $this->status === 'ended';
+        return $this->isOngoing() && ! $this->is_locked;
     }
 
+    // ── Stats ──────────────────────────────────────────
     public function totalVoters(): int
     {
-        return User::where('role', 'student')->count();
+        return User::where('role', 'student')
+                   ->where('department_id', $this->department_id)
+                   ->count();
     }
 
     public function totalVotesCast(): int
@@ -65,18 +86,23 @@ class Election extends Model
     public function turnoutPercent(): float
     {
         $total = $this->totalVoters();
-        if ($total === 0) return 0;
+        if ($total === 0) return 0.0;
         return round(($this->totalVotesCast() / $total) * 100, 1);
     }
 
-    // ── Scopes ─────────────────────────────────────────────
+    // ── Scopes ─────────────────────────────────────────
     public function scopeOngoing($query)
     {
         return $query->where('status', 'ongoing');
     }
 
-    public function scopeActive($query)
+    public function scopeForDepartment($query, int $departmentId)
     {
-        return $query->whereIn('status', ['pending', 'ongoing']);
+        return $query->where('department_id', $departmentId);
+    }
+
+    public function scopeOpenForVoting($query)
+    {
+        return $query->where('status', 'ongoing')->where('is_locked', false);
     }
 }

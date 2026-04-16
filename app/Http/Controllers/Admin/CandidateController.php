@@ -4,29 +4,39 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Candidate;
+use App\Models\Election;
 use App\Models\Position;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class CandidateController extends Controller
 {
-    public function index()
+    public function index(Election $election, Position $position)
     {
-        $candidates = Candidate::with('position')->withCount('votes')->get();
-        return view('admin.candidates.index', compact('candidates'));
+        abort_if((int) $position->election_id !== (int) $election->id, 404);
+
+        $candidates = Candidate::where('position_id', $position->id)
+            ->with('position')
+            ->withCount('votes')
+            ->get();
+
+        $routePrefix = request()->routeIs('staff.*') ? 'staff' : 'admin';
+        return view('admin.candidates.index', compact('candidates', 'position', 'election', 'routePrefix'));
     }
 
-    public function create()
+    public function create(Election $election, Position $position)
     {
-        $positions = Position::orderBy('order')->get();
-        return view('admin.candidates.create', compact('positions'));
+        abort_if((int) $position->election_id !== (int) $election->id, 404);
+        $routePrefix = request()->routeIs('staff.*') ? 'staff' : 'admin';
+        return view('admin.candidates.create', compact('position', 'election', 'routePrefix'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, Election $election, Position $position)
     {
+        abort_if((int) $position->election_id !== (int) $election->id, 404);
+
         $request->validate([
             'name'        => 'required|string|max:255',
-            'position_id' => 'required|exists:positions,id',
             'platform'    => 'nullable|string|max:1000',
             'grade_level' => 'nullable|string|max:50',
             'image'       => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -39,27 +49,32 @@ class CandidateController extends Controller
 
         Candidate::create([
             'name'        => $request->name,
-            'position_id' => $request->position_id,
+            'position_id' => $position->id,
             'platform'    => $request->platform,
             'grade_level' => $request->grade_level,
             'image'       => $imagePath,
         ]);
 
-        return redirect()->route('admin.candidates.index')
+        $routePrefix = request()->routeIs('staff.*') ? 'staff' : 'admin';
+        return redirect()->route("{$routePrefix}.elections.positions.candidates.index", [$election, $position])
                          ->with('success', 'Candidate added successfully.');
     }
 
-    public function edit(Candidate $candidate)
+    public function edit(Election $election, Position $position, Candidate $candidate)
     {
-        $positions = Position::orderBy('order')->get();
-        return view('admin.candidates.edit', compact('candidate', 'positions'));
+        abort_if((int) $position->election_id !== (int) $election->id, 404);
+        abort_if((int) $candidate->position_id !== (int) $position->id, 404);
+        $routePrefix = request()->routeIs('staff.*') ? 'staff' : 'admin';
+        return view('admin.candidates.edit', compact('candidate', 'position', 'election', 'routePrefix'));
     }
 
-    public function update(Request $request, Candidate $candidate)
+    public function update(Request $request, Election $election, Position $position, Candidate $candidate)
     {
+        abort_if((int) $position->election_id !== (int) $election->id, 404);
+        abort_if((int) $candidate->position_id !== (int) $position->id, 404);
+
         $request->validate([
             'name'        => 'required|string|max:255',
-            'position_id' => 'required|exists:positions,id',
             'platform'    => 'nullable|string|max:1000',
             'grade_level' => 'nullable|string|max:50',
             'image'       => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -76,24 +91,27 @@ class CandidateController extends Controller
 
         $candidate->update([
             'name'        => $request->name,
-            'position_id' => $request->position_id,
             'platform'    => $request->platform,
             'grade_level' => $request->grade_level,
             'image'       => $imagePath,
         ]);
 
-        return redirect()->route('admin.candidates.index')
+        $routePrefix = request()->routeIs('staff.*') ? 'staff' : 'admin';
+        return redirect()->route("{$routePrefix}.elections.positions.candidates.index", [$election, $position])
                          ->with('success', 'Candidate updated successfully.');
     }
 
-    public function destroy(Candidate $candidate)
+    public function destroy(Election $election, Position $position, Candidate $candidate)
     {
+        abort_if((int) $position->election_id !== (int) $election->id, 404);
+        abort_if((int) $candidate->position_id !== (int) $position->id, 404);
+
         if ($candidate->image) {
             Storage::disk('public')->delete($candidate->image);
         }
         $candidate->delete();
 
-        return redirect()->route('admin.candidates.index')
+        return redirect()->route('admin.elections.positions.candidates.index', [$election, $position])
                          ->with('success', 'Candidate removed.');
     }
 }

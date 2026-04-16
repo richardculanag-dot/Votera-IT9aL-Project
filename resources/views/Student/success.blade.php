@@ -1,22 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vote Submitted — Votera</title>
-    <link rel="stylesheet" href="{{ asset('css/votera.css') }}">
-    <style>
-        @keyframes checkIn {
-            0%   { transform: scale(0.5); opacity: 0; }
-            70%  { transform: scale(1.1); }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        .v-success-icon { animation: checkIn 0.5s cubic-bezier(.36,.07,.19,.97) both; }
-    </style>
-</head>
-<body>
-<div class="v-success-wrap">
-    <div class="v-success-card">
+@extends('layouts.student')
+
+@section('title', 'Vote Submitted')
+
+@section('content')
+<div class="student-card" style="max-width:760px;margin:0 auto;">
         {{-- Brand --}}
         <div style="margin-bottom:28px;">
             <div style="width:36px;height:36px;background:var(--ink);border-radius:9px;display:grid;place-items:center;margin:0 auto 10px;">
@@ -47,11 +34,7 @@
             @endforeach
         </div>
 
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit" class="btn btn-secondary btn-block">Sign Out</button>
-        </form>
-    </div>
+        <a href="{{ route('student.dashboard') }}" class="btn btn-primary btn-block">Go to Student Dashboard</a>
+        <a href="{{ route('student.history') }}" class="btn btn-secondary btn-block" style="margin-top:10px;">View Vote History</a>
 </div>
-</body>
-</html>
+@endsection

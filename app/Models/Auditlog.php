@@ -4,9 +4,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class AuditLog extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'user_id', 'action', 'model', 'model_id', 'description', 'ip_address',
     ];
