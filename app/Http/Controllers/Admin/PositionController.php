@@ -9,6 +9,18 @@ use Illuminate\Http\Request;
 
 class PositionController extends Controller
 {
+    private function blockEndedElectionChanges(Election $election)
+    {
+        if ($election->status === 'ended') {
+            $routePrefix = request()->routeIs('staff.*') ? 'staff' : 'admin';
+            return redirect()
+                ->route("{$routePrefix}.elections.positions.index", $election)
+                ->with('error', 'This election has already ended. Position management is locked.');
+        }
+
+        return null;
+    }
+
     public function index(Election $election)
     {
         $positions = Position::where('election_id', $election->id)
@@ -22,12 +34,20 @@ class PositionController extends Controller
 
     public function create(Election $election)
     {
+        if ($redirect = $this->blockEndedElectionChanges($election)) {
+            return $redirect;
+        }
+
         $routePrefix = request()->routeIs('staff.*') ? 'staff' : 'admin';
         return view('admin.positions.create', compact('election', 'routePrefix'));
     }
 
     public function store(Request $request, Election $election)
     {
+        if ($redirect = $this->blockEndedElectionChanges($election)) {
+            return $redirect;
+        }
+
         $request->validate([
             'name'        => 'required|string|max:255',
             'description' => 'nullable|string|max:500',
@@ -49,6 +69,9 @@ class PositionController extends Controller
     public function edit(Election $election, Position $position)
     {
         abort_if((int) $position->election_id !== (int) $election->id, 404);
+        if ($redirect = $this->blockEndedElectionChanges($election)) {
+            return $redirect;
+        }
         $routePrefix = request()->routeIs('staff.*') ? 'staff' : 'admin';
         return view('admin.positions.edit', compact('position', 'election', 'routePrefix'));
     }
@@ -56,6 +79,9 @@ class PositionController extends Controller
     public function update(Request $request, Election $election, Position $position)
     {
         abort_if((int) $position->election_id !== (int) $election->id, 404);
+        if ($redirect = $this->blockEndedElectionChanges($election)) {
+            return $redirect;
+        }
 
         $request->validate([
             'name'        => 'required|string|max:255',
@@ -77,8 +103,12 @@ class PositionController extends Controller
     public function destroy(Election $election, Position $position)
     {
         abort_if((int) $position->election_id !== (int) $election->id, 404);
+        if ($redirect = $this->blockEndedElectionChanges($election)) {
+            return $redirect;
+        }
         $position->delete();
-        return redirect()->route('admin.elections.positions.index', $election)
+        $routePrefix = request()->routeIs('staff.*') ? 'staff' : 'admin';
+        return redirect()->route("{$routePrefix}.elections.positions.index", $election)
                          ->with('success', 'Position deleted.');
     }
 }

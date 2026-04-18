@@ -86,6 +86,7 @@ Route::middleware(['auth', 'role:admin'])
 
     // Results
     Route::get('/results', [Admin\ResultsController::class, 'index'])->name('results');
+    Route::get('/results/export/pdf', [Admin\ResultsController::class, 'exportPdf'])->name('results.export');
 
     // Audit Log
     Route::get('/audit', [Admin\AuditLogController::class, 'index'])->name('audit');
@@ -127,6 +128,7 @@ Route::middleware(['auth', 'role:staff'])
 
     // Results
     Route::get('/results', [Admin\ResultsController::class, 'index'])->name('results');
+    Route::get('/results/export/pdf', [Admin\ResultsController::class, 'exportPdf'])->name('results.export');
 });
 
 // ── Student ──────────────────────────────────────────────────

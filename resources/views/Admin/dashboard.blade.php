@@ -78,7 +78,9 @@
         </div>
         <div class="v-card__body">
             @if(count($chartLabels) > 0)
-                <canvas id="votesChart" height="200"></canvas>
+                <div style="height:220px;max-height:220px;">
+                    <canvas id="votesChart"></canvas>
+                </div>
             @else
                 <div class="v-empty" style="padding:40px 0;">
                     <p>No votes recorded yet.</p>
@@ -165,6 +167,7 @@ function initChart(labels, data) {
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false },
                     tooltip: { callbacks: { label: ctx => ` ${ctx.raw} votes` } }

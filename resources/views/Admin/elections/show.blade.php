@@ -25,7 +25,7 @@
         </a>
         <a href="{{ route($routePrefix . '.elections.positions.index', $election) }}" class="btn btn-primary">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7"/></svg>
-            Manage Positions
+            {{ $election->status === 'ended' ? 'View Positions' : 'Manage Positions' }}
         </a>
         @if($routePrefix === 'admin')
         <a href="{{ route('admin.elections.edit', $election) }}" class="btn btn-secondary">
@@ -92,10 +92,14 @@
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7"/></svg>
                 Election Structure
             </h3>
-            <a href="{{ route($routePrefix . '.elections.positions.index', $election) }}" class="btn btn-primary btn-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                Add Position
-            </a>
+            @if($election->status !== 'ended')
+                <a href="{{ route($routePrefix . '.elections.positions.index', $election) }}" class="btn btn-primary btn-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    Add Position
+                </a>
+            @else
+                <span class="badge badge-closed">Read-only (Election ended)</span>
+            @endif
         </div>
         <div class="v-card__body">
             @forelse($election->positions as $position)

@@ -13,6 +13,29 @@
     margin-bottom: 20px;
 }
 
+.election-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.election-result-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    box-shadow: var(--shadow-xs);
+}
+
+.election-result-card.active {
+    border-color: var(--ink);
+    box-shadow: 0 0 0 2px rgba(26, 26, 26, .08);
+}
+
 .results-summary-card {
     background: var(--white);
     border: 1px solid var(--border);
@@ -170,10 +193,28 @@
             @endif
         </div>
     </div>
-    <a href="{{ route('admin.elections.index') }}" class="btn btn-secondary">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-        Back to Elections
-    </a>
+    @php
+        $isStaff = request()->routeIs('staff.*');
+        $electionsIndexRoute = $isStaff ? 'staff.elections.index' : 'admin.elections.index';
+        $resultsRoute = $isStaff ? 'staff.results' : 'admin.results';
+        $exportRoute = $isStaff ? 'staff.results.export' : 'admin.results.export';
+    @endphp
+    <div class="v-page-header__actions">
+        <a href="{{ route($electionsIndexRoute) }}" class="btn btn-secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            Back to Elections
+        </a>
+
+        @if($election && $canExportPdf)
+            <a href="{{ route($exportRoute, ['election' => $election->id]) }}" class="btn btn-primary">
+                Export PDF
+            </a>
+        @elseif($election)
+            <button type="button" class="btn btn-secondary" disabled title="Only ended elections can be exported.">
+                Export PDF (Ended elections only)
+            </button>
+        @endif
+    </div>
 </div>
 
 @if(!$election)
@@ -183,6 +224,23 @@
 </div>
 
 @else
+
+<div class="election-card-grid">
+    @foreach($elections as $item)
+        <a href="{{ route($resultsRoute, ['election' => $item->id]) }}" class="election-result-card {{ $election->id === $item->id ? 'active' : '' }}">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                <div style="font-weight:700;font-size:0.86rem;color:var(--ink);">{{ $item->title }}</div>
+                <span class="badge badge-{{ $item->status }}">{{ ucfirst($item->status) }}</span>
+            </div>
+            <div style="margin-top:6px;font-size:0.74rem;color:var(--ash);">
+                {{ $item->department?->name ?? 'No department' }}
+            </div>
+            <div style="margin-top:2px;font-size:0.72rem;color:var(--ash-light);">
+                {{ $item->start_date?->format('M d, Y') ?? '—' }} to {{ $item->end_date?->format('M d, Y') ?? '—' }}
+            </div>
+        </a>
+    @endforeach
+</div>
 
 {{-- SUMMARY --}}
 <div class="results-header-bar">
@@ -263,7 +321,11 @@
             <div style="flex:1">
                 <div class="result-name">
                     {{ $c->name }}
-                    @if($isWinner) ⭐ Leading @endif
+                    @if($isWinner && $election->status === 'ended')
+                        🏆 Winner
+                    @elseif($isWinner)
+                        ⭐ Leading as of now
+                    @endif
                 </div>
 
                 <div class="result-bar-row">

@@ -73,6 +73,7 @@ class DatabaseSeeder extends Seeder
         $studentTemplates = [
             ['name' => 'Juan Dela Cruz', 'student_id' => 'CCE-2026-001', 'dept' => 'CCE', 'course_index' => 0],
             ['name' => 'Maria Santos', 'student_id' => 'CCE-2026-002', 'dept' => 'CCE', 'course_index' => 1],
+            ['name' => 'Richard Culanag', 'student_id' => 'CCE-2026-003', 'dept' => 'CCE', 'course_index' => 0],
             ['name' => 'John Smith', 'student_id' => 'CEE-2026-001', 'dept' => 'CEE', 'course_index' => 0],
             ['name' => 'Emily Chen', 'student_id' => 'CEE-2026-002', 'dept' => 'CEE', 'course_index' => 1],
             ['name' => 'Lisa Wang', 'student_id' => 'CCJE-2026-001', 'dept' => 'CCJE', 'course_index' => 0],

@@ -11,6 +11,18 @@ use Illuminate\Support\Facades\Storage;
 
 class CandidateController extends Controller
 {
+    private function blockEndedElectionChanges(Election $election)
+    {
+        if ($election->status === 'ended') {
+            $routePrefix = request()->routeIs('staff.*') ? 'staff' : 'admin';
+            return redirect()
+                ->route("{$routePrefix}.elections.positions.candidates.index", [$election, request()->route('position')])
+                ->with('error', 'This election has already ended. Candidate management is locked.');
+        }
+
+        return null;
+    }
+
     public function index(Election $election, Position $position)
     {
         abort_if((int) $position->election_id !== (int) $election->id, 404);
@@ -27,6 +39,9 @@ class CandidateController extends Controller
     public function create(Election $election, Position $position)
     {
         abort_if((int) $position->election_id !== (int) $election->id, 404);
+        if ($redirect = $this->blockEndedElectionChanges($election)) {
+            return $redirect;
+        }
         $routePrefix = request()->routeIs('staff.*') ? 'staff' : 'admin';
         return view('admin.candidates.create', compact('position', 'election', 'routePrefix'));
     }
@@ -34,6 +49,9 @@ class CandidateController extends Controller
     public function store(Request $request, Election $election, Position $position)
     {
         abort_if((int) $position->election_id !== (int) $election->id, 404);
+        if ($redirect = $this->blockEndedElectionChanges($election)) {
+            return $redirect;
+        }
 
         $request->validate([
             'name'        => 'required|string|max:255',
@@ -64,6 +82,9 @@ class CandidateController extends Controller
     {
         abort_if((int) $position->election_id !== (int) $election->id, 404);
         abort_if((int) $candidate->position_id !== (int) $position->id, 404);
+        if ($redirect = $this->blockEndedElectionChanges($election)) {
+            return $redirect;
+        }
         $routePrefix = request()->routeIs('staff.*') ? 'staff' : 'admin';
         return view('admin.candidates.edit', compact('candidate', 'position', 'election', 'routePrefix'));
     }
@@ -72,6 +93,9 @@ class CandidateController extends Controller
     {
         abort_if((int) $position->election_id !== (int) $election->id, 404);
         abort_if((int) $candidate->position_id !== (int) $position->id, 404);
+        if ($redirect = $this->blockEndedElectionChanges($election)) {
+            return $redirect;
+        }
 
         $request->validate([
             'name'        => 'required|string|max:255',
@@ -105,13 +129,17 @@ class CandidateController extends Controller
     {
         abort_if((int) $position->election_id !== (int) $election->id, 404);
         abort_if((int) $candidate->position_id !== (int) $position->id, 404);
+        if ($redirect = $this->blockEndedElectionChanges($election)) {
+            return $redirect;
+        }
 
         if ($candidate->image) {
             Storage::disk('public')->delete($candidate->image);
         }
         $candidate->delete();
 
-        return redirect()->route('admin.elections.positions.candidates.index', [$election, $position])
+        $routePrefix = request()->routeIs('staff.*') ? 'staff' : 'admin';
+        return redirect()->route("{$routePrefix}.elections.positions.candidates.index", [$election, $position])
                          ->with('success', 'Candidate removed.');
     }
 }
