@@ -55,7 +55,7 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
-        return view('admin.dashboard', compact(
+        return view('Admin.dashboard', compact(
             'totalStudents',
             'totalCandidates',
             'totalPositions',
