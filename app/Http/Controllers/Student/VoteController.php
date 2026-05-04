@@ -40,7 +40,7 @@ class VoteController extends Controller
             ->take(5)
             ->get();
 
-        return view('Student.dashboard', compact(
+        return view('student.dashboard', compact(
             'liveElections',
             'upcomingElections',
             'voteCount',
@@ -51,7 +51,7 @@ class VoteController extends Controller
     public function profile(): View
     {
         $user = auth()->user()->load(['department', 'course']);
-        return view('Student.profile', compact('user'));
+        return view('student.profile', compact('user'));
     }
 
     public function updateProfile(Request $request)
@@ -88,7 +88,7 @@ class VoteController extends Controller
             ->latest()
             ->get();
 
-        return view('Student.elections', compact('elections'));
+        return view('student.elections', compact('elections'));
     }
 
     public function index(Election $election)
@@ -231,7 +231,7 @@ class VoteController extends Controller
             ->latest()
             ->paginate(12);
 
-        return view('Student.history', compact('votes'));
+        return view('student.history', compact('votes'));
     }
 
     public function success()
