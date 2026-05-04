@@ -19,7 +19,7 @@ class DashboardController extends Controller
                              ->where('key', 'voting_status')
                              ->value('value');
 
-        return view('Staff.dashboard', compact(
+        return view('staff.dashboard', compact(
             'totalStudents',
             'totalCandidates',
             'totalVotes',
