@@ -83,6 +83,7 @@
         </form>
 
         <div class="v-login-footer">
+            <p><a href="{{ route('landing') }}">← Back to home</a></p>
             <p>Trouble signing in? <a href="mailto:registrar@school.edu">Contact Registrar</a></p>
         </div>
     </div>

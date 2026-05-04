@@ -10,10 +10,16 @@
         <div class="v-page-header__sub">Manage election periods and their status</div>
     </div>
     @if($routePrefix === 'admin')
-    <a href="{{ route('admin.elections.create') }}" class="btn btn-primary">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-        New Election
-    </a>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a href="{{ route('admin.elections.trash.index') }}" class="btn btn-secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            Trash
+        </a>
+        <a href="{{ route('admin.elections.create') }}" class="btn btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+            New Election
+        </a>
+    </div>
     @endif
 </div>
 
@@ -82,12 +88,14 @@
                 Manage
             </a>
             @if($routePrefix === 'admin')
+            @if(! $election->isEnded())
             <a href="{{ route('admin.elections.edit', $election) }}" class="election-card__action-link">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                 Edit
             </a>
+            @endif
             @if(! $election->isOngoing())
-            <form method="POST" action="{{ route('admin.elections.destroy', $election) }}" onsubmit="return confirm('Delete this election? This cannot be undone.')">
+            <form method="POST" action="{{ route('admin.elections.destroy', $election) }}" onsubmit="return confirm('Move this election to trash? You can restore it from Election trash before it is permanently purged.')">
                 @csrf @method('DELETE')
                 <button type="submit" class="election-card__action-link election-card__action-link--danger">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>

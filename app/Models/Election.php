@@ -11,6 +11,9 @@ class Election extends Model
 {
     use HasFactory, SoftDeletes;
 
+    /** Days a soft-deleted election stays in trash before permanent removal (scheduled task). */
+    public const TRASH_RETENTION_DAYS = 30;
+
     protected $fillable = [
         'title', 'description',
         'department_id',
@@ -104,5 +107,15 @@ class Election extends Model
     public function scopeOpenForVoting($query)
     {
         return $query->where('status', 'ongoing')->where('is_locked', false);
+    }
+
+    /** When this trashed row will be eligible for automatic permanent deletion. */
+    public function trashPurgesAt(): ?\Illuminate\Support\Carbon
+    {
+        if ($this->deleted_at === null) {
+            return null;
+        }
+
+        return $this->deleted_at->copy()->addDays(self::TRASH_RETENTION_DAYS);
     }
 }

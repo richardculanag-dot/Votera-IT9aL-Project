@@ -1,22 +1,14 @@
 <?php
 // FILE: routes/web.php — replace existing
 
+use App\Http\Controllers\LandingController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin;
 use App\Http\Controllers\Staff;
 use App\Http\Controllers\Student;
 
-// ── Root redirect ────────────────────────────────────────────
-Route::get('/', function () {
-    if (auth()->check()) {
-        return redirect()->route(match (auth()->user()->role) {
-            'admin'  => 'admin.dashboard',
-            'staff'  => 'staff.dashboard',
-            default  => 'student.dashboard',
-        });
-    }
-    return redirect()->route('login');
-});
+// ── Public landing ───────────────────────────────────────────
+Route::get('/', LandingController::class)->name('landing');
 
 require __DIR__ . '/auth.php';
 
@@ -52,7 +44,12 @@ Route::middleware(['auth', 'role:admin'])
     // Votes
     Route::get('/votes', [Admin\VoteController::class, 'index'])->name('votes.index');
 
-    // Elections
+    // Elections (trash routes must be registered before the resource `show` route)
+    Route::get('/elections/trash', [Admin\ElectionTrashController::class, 'index'])->name('elections.trash.index');
+    Route::post('/elections/trash/{id}/restore', [Admin\ElectionTrashController::class, 'restore'])->name('elections.trash.restore');
+    Route::delete('/elections/trash/{id}', [Admin\ElectionTrashController::class, 'destroy'])->name('elections.trash.destroy');
+    Route::delete('/elections/trash', [Admin\ElectionTrashController::class, 'empty'])->name('elections.trash.empty');
+
     Route::resource('elections', Admin\ElectionController::class);
     Route::post('/elections/{election}/toggle', [Admin\ElectionController::class, 'toggleStatus'])
          ->name('elections.toggle');

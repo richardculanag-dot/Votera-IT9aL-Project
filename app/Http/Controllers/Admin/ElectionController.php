@@ -87,12 +87,24 @@ class ElectionController extends Controller
 
     public function edit(Election $election)
     {
+        if ($election->isEnded()) {
+            return redirect()
+                ->route('admin.elections.show', $election)
+                ->with('error', 'This election has ended; details can no longer be edited.');
+        }
+
         $departments = Department::orderBy('name')->get();
         return view('admin.elections.edit', compact('election', 'departments'));
     }
 
     public function update(Request $request, Election $election)
     {
+        if ($election->isEnded()) {
+            return redirect()
+                ->route('admin.elections.show', $election)
+                ->with('error', 'This election has ended; details can no longer be updated.');
+        }
+
         $request->validate([
             'title'       => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -111,11 +123,11 @@ class ElectionController extends Controller
 
     public function destroy(Election $election)
     {
-        AuditLog::record('election_deleted', "Deleted election: {$election->title}", 'Election', $election->id);
-        $election->delete(); // soft delete
+        AuditLog::record('election_deleted', "Moved election to trash: {$election->title}", 'Election', $election->id);
+        $election->delete(); // soft delete → trash
 
         return redirect()->route('admin.elections.index')
-                         ->with('success', 'Election removed.');
+                         ->with('success', 'Election moved to trash. You can restore it from Election trash within '.Election::TRASH_RETENTION_DAYS.' days.');
     }
 
     // ── Status toggle ──────────────────────────────────────
