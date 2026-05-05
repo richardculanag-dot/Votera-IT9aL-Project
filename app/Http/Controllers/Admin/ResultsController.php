@@ -111,7 +111,7 @@ class ResultsController extends Controller
             $election->id
         );
 
-        $pdf = Pdf::loadView('Admin.results_pdf', compact(
+        $pdf = Pdf::loadView('admin.results_pdf', compact(
             'election',
             'positions',
             'totalVoters',
